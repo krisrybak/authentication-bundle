@@ -1,0 +1,4 @@
+services:
+#    rybak_digital_authentication.example:
+#        class: RybakDigital\Bundle\AuthenticationBundle\Example
+#        arguments: ["@service_id", "plain_value", %parameter%]

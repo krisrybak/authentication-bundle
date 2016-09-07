@@ -1,0 +1,38 @@
+<phpunit 
+        backupGlobals="false"
+        backupStaticAttributes="false"
+        colors="true"
+        convertErrorsToExceptions="true"
+        convertNoticesToExceptions="true"
+        convertWarningsToExceptions="true"
+        forceCoversAnnotation="false"
+        mapTestClassNameToCoveredClassName="false"
+        processIsolation="false"
+        stopOnError="false"
+        stopOnFailure="false"
+        stopOnIncomplete="false"
+        stopOnSkipped="false"
+        syntaxCheck="true"
+        verbose="true"
+        bootstrap="../../../../app/autoload.php">
+    <logging>
+        <log
+            type="coverage-html"
+            target="/var/www/html/tests/authentication-bundle/reports"
+            charset="UTF-8"
+            yui="true"
+            highlight="false"
+            lowUpperBound="35"
+            highLowerBound="70"/>
+    </logging>
+    <testsuites>
+        <testsuite name="bundle Test Suite">
+            <directory>./Tests/</directory>
+        </testsuite>
+    </testsuites>
+    <filter>
+        <blacklist processUncoveredFilesFromWhitelist="false">
+            <directory>./vendor</directory>
+        </blacklist>
+    </filter>
+</phpunit>

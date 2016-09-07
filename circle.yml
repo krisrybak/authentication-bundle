@@ -1,8 +1,13 @@
-
 machine:
-  php:
-    version: 5.6.17
+    php:
+        version: 7.0.7
+dependencies:
+    pre:
+        - composer self-update
+        - composer update --prefer-dist --no-interaction
+        - composer install --dev
+        - composer require symfony/symfony:3.1.*
+        - composer require symfony/monolog-bundle:^2.8
 test:
-  override:
-    - mkdir -p $CIRCLE_TEST_REPORTS/phpunit
-    - phpunit --log-junit $CIRCLE_TEST_REPORTS/phpunit/junit.xml --configuration Tests/circle.phpunit.xml
+    override:
+        - phpunit --configuration circleci.phpunit.xml

@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<phpunit bootstrap="./bootstrap.php" colors="true">
+<phpunit bootstrap="./Tests/bootstrap.php" colors="true">
 
     <testsuites>
         <testsuite name="RybakDigitalAuthenticationBundle test suite">
-            <directory suffix="Test.php">./</directory>
+            <directory suffix="Test.php">./Tests</directory>
         </testsuite>
     </testsuites>
     <php>
-        <server name="KERNEL_DIR" value="./Fixtures/App" />
+        <server name="KERNEL_DIR" value="./Tests/Fixtures/App" />
     </php>
     <filter>
         <whitelist>

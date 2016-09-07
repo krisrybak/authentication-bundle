@@ -14,4 +14,4 @@ before_script:
   - composer require symfony/monolog-bundle:^2.8
 
 script:
-  - phpunit --configuration ./Tests/travis.phpunit.xml
+  - phpunit --configuration travis.phpunit.xml

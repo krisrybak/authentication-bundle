@@ -8,7 +8,7 @@ use RybakDigital\Bundle\AuthenticationBundle\Authentication\Token\TokenInterface
 
 class TokenTest extends TestCase
 {
-    public function testImplementsTokenInterface
+    public function testImplementsTokenInterface()
     {
         $token = new Token;
 

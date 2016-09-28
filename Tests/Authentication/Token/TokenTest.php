@@ -55,8 +55,20 @@ class TokenTest extends TestCase
             array(
                 'my-app-name',
                 'x72jdsaj7428dshSAKJF741298jsaHAF8',
-                null,
+                'x72jdsaaj7428dshSAK-JFA741298jsaHAF8',
                 5,
+            ),
+            array(
+                'SOME-APP-name',
+                'x72xjd',
+                'x72jdsaaj7428dshSAK',
+                5,
+            ),
+            array(
+                'SOME-APP-name',
+                'x72xjdUsajISA8',
+                null,
+                0,
             ),
         );
     }
@@ -68,6 +80,9 @@ class TokenTest extends TestCase
     {
         $token = new Token($app, $key, $nonce, $rounds);
 
-        var_dump($token);
+        $this->assertEquals($app, $token->getApp());
+        $this->assertEquals($key, $token->getKey());
+        $this->assertEquals($nonce, $token->getNonce());
+        $this->assertEquals($rounds, $token->getRounds());
     }
 }

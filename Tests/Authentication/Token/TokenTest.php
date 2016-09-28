@@ -34,4 +34,40 @@ class TokenTest extends TestCase
 
         $this->assertTrue($ret);
     }
+
+    public function testDefaultRealm()
+    {
+        $token = new Token;
+
+        $this->assertEquals($token::$defaultRealm, $token->getRealm());
+    }
+
+    public function testDefaultRounds()
+    {
+        $token = new Token;
+
+        $this->assertEquals(0, $token->getRounds());
+    }
+
+    public function initialTokentDataProvider()
+    {
+        return array(
+            array(
+                'my-app-name',
+                'x72jdsaj7428dshSAKJF741298jsaHAF8',
+                null,
+                5,
+            ),
+        );
+    }
+
+    /**
+     * @dataProvider initialTokentDataProvider
+     */
+    public function testInitialisation($app, $key, $nonce, $rounds)
+    {
+        $token = new Token($app, $key, $nonce, $rounds);
+
+        var_dump($token);
+    }
 }

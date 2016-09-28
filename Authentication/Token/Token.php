@@ -5,6 +5,7 @@ namespace RybakDigital\Bundle\AuthenticationBundle\Authentication\Token;
 use RybakDigital\Bundle\AuthenticationBundle\Authentication\Token\TokenInterface;
 use RybakDigital\Bundle\AuthenticationBundle\Authentication\Token\UserTokenInterface;
 use Ucc\Crypt\Hash;
+use \InvalidArgumentException;
 
 /**
  * RybakDigital\Bundle\AuthenticationBundle\Authentication\Token\Token
@@ -180,7 +181,7 @@ class Token implements TokenInterface, UserTokenInterface
     /**
      * Get rounds
      *
-     * @return  string
+     * @return  int
      */
     public function getRounds()
     {
@@ -190,12 +191,17 @@ class Token implements TokenInterface, UserTokenInterface
     /**
      * Set rounds
      *
-     * @param   string  $rounds
+     * @param   mixed   $rounds     Accepts numeric values
      * @return  Token
+     * @throws  InvalidArgumentException
      */
     public function setRounds($rounds)
     {
-        $this->rounds = $rounds;
+        if (!is_numeric($rounds)) {
+            throw new InvalidArgumentException("Expected rounds to be of numeric value. ", 400);
+        }
+
+        $this->rounds = (int) $rounds;
 
         return $this;
     }

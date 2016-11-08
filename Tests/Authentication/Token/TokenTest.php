@@ -236,4 +236,70 @@ class TokenTest extends TestCase
         $this->assertTrue(is_string($salt));
         $this->assertNotTrue($salt == '', 'generateNonce must return a non-empty string.');
     }
+
+    public function fromHeaderProvider()
+    {
+        $data = array(
+            array(
+                'Rounds="40", App="example-app", Nonce="sdfs@sdfijsdf", Token="95bc816f67d9f219727cef5ae60287b5f8bc72f8a831fd963138d52820e45205", Realm="rd-auth-token", User=""',
+                new Token('example-app', 'fsdhfds89adIASD', 'sdfs@sdfijsdf', 40)
+            ),
+            array(
+                'Rounds="0", App="my-app", Nonce="", Token="3c25c411fe108a48f5e2bc570e725becbf2e9c61afac5ae08541e33065829274", Realm="rd-auth-token", User=""',
+                new Token('my-app', 'fsfdfSDFISDF4fdfisndf'),
+            ),
+            array(
+                'Rounds="5", App="my-app", Nonce="dfds333", Token="268e960b9b06b2ec4de6b7b764898a60d9574ea933adf04d8698d6a6bd55a0c0", Realm="v1api", User="me@somewhere.com"',
+                (new Token('my-app', 'sfsdf778', 'dfds333', 5))->setUser('me@somewhere.com')->setRealm('v1api'),
+            ),
+        );
+
+        return $data;
+    }
+
+    /**
+     * @dataProvider        fromHeaderProvider
+     */
+    public function testFromHeader($header, $expectedToken)
+    {
+        $token = (new Token)->fromHeader($header);
+        $this->assertEquals($expectedToken->getRounds(), $token->Rounds);
+        $this->assertEquals($expectedToken->getToken(), $token->Token);
+        $this->assertEquals($expectedToken->getNonce(), $token->Nonce);
+        $this->assertEquals($expectedToken->getRealm(), $token->Realm);
+        $this->assertEquals($expectedToken->getUser(), $token->User);
+    }
+
+    public function fromParameterProvider()
+    {
+        $data = array(
+            array(
+                '~1a0~1bmy-app~1c~1d3c25c411fe108a48f5e2bc570e725becbf2e9c61afac5ae08541e33065829274~1erd-auth-token~1f',
+                new Token('my-app', 'fsfdfSDFISDF4fdfisndf'),
+            ),
+            array(
+                '~1a40~1bexample-app~1csdfs@sdfijsdf~1d95bc816f67d9f219727cef5ae60287b5f8bc72f8a831fd963138d52820e45205~1erd-auth-token~1f',
+                new Token('example-app', 'fsdhfds89adIASD', 'sdfs@sdfijsdf', 40)
+            ),
+            array(
+                '~1a5~1bmy-app~1cdfds333~1d268e960b9b06b2ec4de6b7b764898a60d9574ea933adf04d8698d6a6bd55a0c0~1ev1api~1fme@somewhere.com',
+                (new Token('my-app', 'sfsdf778', 'dfds333', 5))->setUser('me@somewhere.com')->setRealm('v1api'),
+            ),
+        );
+
+        return $data;
+    }
+
+    /**
+     * @dataProvider        fromParameterProvider
+     */
+    public function testFromParameter($parameter, $expectedToken)
+    {
+        $token = (new Token)->fromParameter($parameter);
+        $this->assertEquals($expectedToken->getRounds(), $token->Rounds);
+        $this->assertEquals($expectedToken->getToken(), $token->Token);
+        $this->assertEquals($expectedToken->getNonce(), $token->Nonce);
+        $this->assertEquals($expectedToken->getRealm(), $token->Realm);
+        $this->assertEquals($expectedToken->getUser(), $token->User);
+    }
 }

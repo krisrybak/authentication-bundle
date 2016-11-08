@@ -389,14 +389,13 @@ class Token implements TokenInterface, UserTokenInterface
                 if (preg_match($regex, $param, $matches)) {
                     $end    = stripos($matches[0], '~');
 
-                    if ($end) {
+                    if ($end !== false) {
                         $part = substr($matches[0], 0, $end);
                     } else {
                         $part = $matches[0];
                     }
 
                     $key = self::$prefixToPropertyMap[$prefix];
-
 
                     if ($prefix == self::PREFIX_ROUNDS) {
                         $part = (int) $part;

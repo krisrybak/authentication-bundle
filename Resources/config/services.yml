@@ -2,6 +2,12 @@ services:
     rybakdigital.authentication.api.app_token.header_authenticator:
         class: RybakDigital\Bundle\AuthenticationBundle\Security\Authentication\Api\AppToken\HeaderAuthenticator
         arguments: []
+    rybakdigital.authentication.api.app_token.parameter_authenticator:
+        class: RybakDigital\Bundle\AuthenticationBundle\Security\Authentication\Api\AppToken\ParameterAuthenticator
+        arguments: []
     rybakdigital.authentication.api.app_user_token.header_authenticator:
         class: RybakDigital\Bundle\AuthenticationBundle\Security\Authentication\Api\AppUserToken\HeaderAuthenticator
+        arguments: []
+    rybakdigital.authentication.api.app_user_token.parameter_authenticator:
+        class: RybakDigital\Bundle\AuthenticationBundle\Security\Authentication\Api\AppUserToken\ParameterAuthenticator
         arguments: []

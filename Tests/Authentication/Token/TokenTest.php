@@ -302,4 +302,154 @@ class TokenTest extends TestCase
         $this->assertEquals($expectedToken->getRealm(), $token->Realm);
         $this->assertEquals($expectedToken->getUser(), $token->User);
     }
+
+    public function abstractTokenProvider()
+    {
+        // blank app name, key
+        $keyOne = 'sdfsdfdsfsdf3343dDD';
+        $tokenOne = new Token('', $keyOne);
+
+        // app, key
+        $keyTwo = 'sfs4fssfsf';
+        $tokenTwo = new Token('test-app', $keyTwo);
+
+        // app, key and nonce
+        $keyThree = '32dsas2fsf';
+        $tokenThree = new Token('sample-app', $keyThree, '28438gfdgdfgdf854tgtdr');
+
+        // app, key, nonce and rounds
+        $keyFour = 'sdfssadfddsfdfdsfsdf3343dDD';
+        $tokenFour = new Token('test-app', $keyFour, '28438gfdgdfgdf854tgtdr', 12);
+
+        // app, key, nonce, rounds and user
+        $keyFive = 'wr3r23rqrewwe';
+        $tokenFive = (new Token('example-app', $keyFive, 'd654g64df4g6d', 14))->setUser('me@me.com');
+
+        // app, key, nonce, rounds, user and realm
+        $keySix = 'werewrqwrrtert34534';
+        $tokenSix = (new Token('sample-app', $keySix, '234234464ff6646546', 0))->setUser('me@me.com')->setRealm('v2api');
+
+        $data = array(
+            array($tokenOne->generateHeader(),    $keyOne, true),
+            array($tokenOne->generateParameter(), $keyOne, true),
+            array($tokenOne->generateHeader(),    123,  false),
+            array($tokenOne->generateParameter(), 123,  false),
+
+            array($tokenTwo->generateHeader(),      $keyTwo, true),
+            array($tokenTwo->generateParameter(),   $keyTwo, true),
+            array($tokenTwo->generateHeader(),      258, false),
+            array($tokenTwo->generateParameter(),   489, false),
+
+            array($tokenThree->generateHeader(),      $keyThree, true),
+            array($tokenThree->generateParameter(),   $keyThree, true),
+            array($tokenThree->generateHeader(),      451, false),
+            array($tokenThree->generateParameter(),   765, false),
+
+            array($tokenFour->generateHeader(),      $keyFour, true),
+            array($tokenFour->generateParameter(),   $keyFour, true),
+            array($tokenFour->generateHeader(),      234, false),
+            array($tokenFour->generateParameter(),   454, false),
+
+            array($tokenFive->generateHeader(),      $keyFive, true),
+            array($tokenFive->generateParameter(),   $keyFive, true),
+            array($tokenFive->generateHeader(),      234, false),
+            array($tokenFive->generateParameter(),   454, false),
+
+            array($tokenSix->generateHeader(),      $keySix, true),
+            array($tokenSix->generateParameter(),   $keySix, true),
+            array($tokenSix->generateHeader(),      789, false),
+            array($tokenSix->generateParameter(),   453, false),
+        );
+
+        return $data;
+    }
+
+    /**
+     * @dataProvider        abstractTokenProvider
+     */
+    public function testValidate($tokenAbstract, $key, $expected)
+    {
+        $token = new Token;
+        $this->assertTrue(is_bool($token->validate($tokenAbstract, $key)));
+        $this->assertSame($expected, $token->validate($tokenAbstract, $key));
+    }
+
+    /**
+     * @dataProvider        abstractTokenProvider
+     */
+    public function testIsValid($tokenAbstract, $key, $expected)
+    {
+        $token = new Token;
+        $this->assertTrue(is_bool($token->isValid($tokenAbstract, $key)));
+        $this->assertSame($expected, $token->isValid($tokenAbstract, $key));
+    }
+
+    public function abstractTokenFailProvider()
+    {
+        // blank app name, key
+        $keyOne = 'sdfsdfdsfsdf3343dDD';
+        $tokenOne = new Token('', $keyOne);
+
+        // app, key
+        $keyTwo = 'sfs4fssfsf';
+        $tokenTwo = new Token('test-app', $keyTwo);
+
+        // app, key and nonce
+        $keyThree = '32dsas2fsf';
+        $tokenThree = new Token('sample-app', $keyThree, '28438gfdgdfgdf854tgtdr');
+
+        // app, key, nonce and rounds
+        $keyFour = 'sdfssadfddsfdfdsfsdf3343dDD';
+        $tokenFour = new Token('test-app', $keyFour, '28438gfdgdfgdf854tgtdr', 12);
+
+        // app, key, nonce, rounds and user
+        $keyFive = 'wr3r23rqrewwe';
+        $tokenFive = (new Token('example-app', $keyFive, 'd654g64df4g6d', 14))->setUser('me@me.com');
+
+        // app, key, nonce, rounds, user and realm
+        $keySix = 'werewrqwrrtert34534';
+        $tokenSix = (new Token('sample-app', $keySix, '234234464ff6646546', 0))->setUser('me@me.com')->setRealm('v2api');
+
+        $data = array(
+            array($tokenOne->generateParameter(), $keyOne, false),
+            array($tokenOne->generateHeader(), $keyOne, false),
+
+            array($tokenTwo->generateParameter(), $keyTwo, false),
+            array($tokenTwo->generateHeader(), $keyTwo, false),
+
+            array($tokenThree->generateParameter(), $keyThree, false),
+            array($tokenThree->generateHeader(), $keyThree, false),
+
+            array($tokenFour->generateParameter(), $keyFour, false),
+            array($tokenFour->generateHeader(), $keyFour, false),
+
+            array($tokenFive->generateParameter(), $keyFive, false),
+            array($tokenFive->generateHeader(), $keyFive, false),
+
+            array($tokenSix->generateParameter(), $keySix, false),
+            array($tokenSix->generateHeader(), $keySix, false),
+        );
+
+        return $data;
+    }
+
+    /**
+     * @dataProvider        abstractTokenFailProvider
+     */
+    public function testValidateFail($tokenAbstract, $key, $expected)
+    {
+        $token = new Token;
+        $this->assertTrue(is_bool($token->validate($tokenAbstract, $key)));
+        $this->assertNotSame($expected, $token->validate($tokenAbstract, $key));
+    }
+
+    /**
+     * @dataProvider        abstractTokenFailProvider
+     */
+    public function testIsValidFail($tokenAbstract, $key, $expected)
+    {
+        $token = new Token;
+        $this->assertTrue(is_bool($token->isValid($tokenAbstract, $key)));
+        $this->assertNotSame($expected, $token->isValid($tokenAbstract, $key));
+    }
 }

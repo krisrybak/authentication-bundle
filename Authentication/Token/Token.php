@@ -282,7 +282,13 @@ class Token implements TokenInterface, UserTokenInterface
     public function setExpiresAt($expiresAt)
     {
         if (is_string($expiresAt)) {
-            $expiresAt = new \DateTime($expiresAt);
+            $dateTime = \DateTime::createFromFormat(\DateTime::ATOM, $expiresAt);
+
+            if (!$dateTime) {
+                throw new InvalidArgumentException("Problem with parsing token expiry datetime. Did you forget to urlencode your token?", 400);
+            }
+
+            $expiresAt = $dateTime;
         }
 
         $this->expiresAt = $expiresAt;
@@ -338,7 +344,7 @@ class Token implements TokenInterface, UserTokenInterface
             $parts[] = self::PREFIX_EXPIRY . $this->getExpiresAt()->format(\DateTime::ATOM);
         }
 
-        return urlencode(implode('~', $parts));
+        return implode('~', $parts);
     }
 
     /**

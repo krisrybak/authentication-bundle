@@ -329,6 +329,14 @@ class TokenTest extends TestCase
         $keySix = 'werewrqwrrtert34534';
         $tokenSix = (new Token('sample-app', $keySix, '234234464ff6646546', 0))->setUser('me@me.com')->setRealm('v2api');
 
+        // app, key, nonce, rounds, user, realm and expiresAt
+        $keySeven = 'gQtGQnWQjvs3Q';
+        $tokenSeven = (new Token('sample-app', $keySeven, 'gQtGQnWQjvs3Q', 5))->setUser('me@me.com')->setRealm('v2api')->setExpiresAt(new \DateTime('+15 min'));
+
+        // app, key, nonce, rounds, user, realm and expiresAt (expired)
+        $keyEight = 'gQtGQnWQjvs3Q';
+        $tokenEight = (new Token('sample-app', $keyEight, 'gQtGQnWQjvs3Q', 5))->setUser('me@me.com')->setRealm('v2api')->setExpiresAt(new \DateTime('-15 min'));
+
         $data = array(
             array($tokenOne->generateHeader(),    $keyOne, true),
             array($tokenOne->generateParameter(), $keyOne, true),
@@ -359,6 +367,14 @@ class TokenTest extends TestCase
             array($tokenSix->generateParameter(),   $keySix, true),
             array($tokenSix->generateHeader(),      789, false),
             array($tokenSix->generateParameter(),   453, false),
+
+            array($tokenSeven->generateHeader(),      $keySeven, true),
+            array($tokenSeven->generateParameter(),   $keySeven, true),
+            array($tokenSeven->generateHeader(),      789, false),
+            array($tokenSeven->generateParameter(),   453, false),
+
+            array($tokenEight->generateHeader(),      $keyEight, false),
+            array($tokenEight->generateParameter(),   $keyEight, false),
         );
 
         return $data;

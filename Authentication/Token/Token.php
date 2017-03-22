@@ -20,6 +20,7 @@ class Token implements TokenInterface, UserTokenInterface
     const PREFIX_TOKEN  = '1d';
     const PREFIX_REALM  = '1e';
     const PREFIX_USER   = '1f';
+    const PREFIX_EXPIRY = '1g';
 
     public static $defaultRealm = 'rd-auth-token';
 
@@ -33,6 +34,7 @@ class Token implements TokenInterface, UserTokenInterface
         self::PREFIX_REALM     => 'setRealm',
         self::PREFIX_USER      => 'setUser',
         self::PREFIX_TOKEN     => 'setToken',
+        self::PREFIX_EXPIRY    => 'setExpiresAt',
     );
 
     /**
@@ -45,6 +47,7 @@ class Token implements TokenInterface, UserTokenInterface
         self::PREFIX_REALM     => 'Realm',
         self::PREFIX_USER      => 'User',
         self::PREFIX_TOKEN     => 'Token',
+        self::PREFIX_EXPIRY    => 'ExpiresAt',
     );
 
     /**
@@ -56,6 +59,7 @@ class Token implements TokenInterface, UserTokenInterface
         'Rounds'    => 'setRounds',
         'Realm'     => 'setRealm',
         'User'      => 'setUser',
+        'ExpiresAt' => 'setExpiresAt',
     );
 
     /**
@@ -99,6 +103,13 @@ class Token implements TokenInterface, UserTokenInterface
      * @var     string
      */
     private $user;
+
+    /**
+     * ExpiresAt
+     *
+     * @var     datetime
+     */
+    private $expiresAt;
 
     public function __construct($app = null, $key = null, $nonce = null, $rounds = 0)
     {
@@ -253,20 +264,56 @@ class Token implements TokenInterface, UserTokenInterface
     }
 
     /**
+     * Get ExpiresAt
+     *
+     * @return  datetime
+     */
+    public function getExpiresAt()
+    {
+        return $this->expiresAt;
+    }
+
+    /**
+     * Set ExpiresAt
+     *
+     * @param   datetime  $expiresAt
+     * @return  Token
+     */
+    public function setExpiresAt($expiresAt)
+    {
+        if (is_string($expiresAt)) {
+            $expiresAt = new \DateTime($expiresAt);
+        }
+
+        $this->expiresAt = $expiresAt;
+
+        return $this;
+    }
+
+    /**
      * Generates authorization header
      *
      * @return  string
      */
     public function generateHeader()
     {
+        $format     = 'Rounds="%s", App="%s", Nonce="%s", Token="%s", Realm="%s", User="%s"';
+        $expiresAt  = null;
+
+        if ($this->getExpiresAt()) {
+            $format = $format . ', ExpiresAt="%s"';
+            $expiresAt  = $this->getExpiresAt()->format(\DateTime::ATOM);
+        }
+
         return sprintf(
-            'Rounds="%s", App="%s", Nonce="%s", Token="%s", Realm="%s", User="%s"',
+            $format,
             $this->getRounds(),
             $this->getApp(),
             $this->getNonce(),
             $this->getToken(),
             $this->getRealm(),
-            $this->getUser()
+            $this->getUser(),
+            $expiresAt
         );
     }
 
@@ -277,7 +324,7 @@ class Token implements TokenInterface, UserTokenInterface
      */
     public function generateParameter()
     {
-        return implode('~', array(
+        $parts = array(
             '', // this is to make sure that token starts with ~
             self::PREFIX_ROUNDS . $this->getRounds(),
             self::PREFIX_APP . $this->getApp(),
@@ -285,7 +332,13 @@ class Token implements TokenInterface, UserTokenInterface
             self::PREFIX_TOKEN . $this->getToken(),
             self::PREFIX_REALM . $this->getRealm(),
             self::PREFIX_USER . $this->getUser()
-        ));
+        );
+
+        if ($this->getExpiresAt()) {
+            $parts[] = self::PREFIX_EXPIRY . $this->getExpiresAt()->format(\DateTime::ATOM);
+        }
+
+        return urlencode(implode('~', $parts));
     }
 
     /**
@@ -298,6 +351,10 @@ class Token implements TokenInterface, UserTokenInterface
      */
     private function getHa1()
     {
+        if ($this->getExpiresAt()) {
+            return Hash::hash256($this->getKey() . ':' . $this->getRealm() . ':' . $this->getApp() . ':' . $this->getExpiresAt()->format(\DateTime::ATOM));
+        }
+
         return Hash::hash256($this->getKey() . ':' . $this->getRealm() . ':' . $this->getApp());
     }
 
@@ -435,6 +492,18 @@ class Token implements TokenInterface, UserTokenInterface
 
         if (isset($token->Token)) {
             if ($token->Token === $this->getToken()) {
+                // Check if token is temporary (Expires at some point)
+                if ($this->getExpiresAt()) {
+                    // Check if token is not expired
+                    $now = new \DateTime();
+                    // dump($this->getExpiresAt(), $now);die;
+                    if ($now <= $this->getExpiresAt()){
+                        return true;
+                    }
+
+                    return false;
+                }
+
                 return true;
             }
         }

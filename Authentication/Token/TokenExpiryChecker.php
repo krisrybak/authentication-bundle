@@ -2,6 +2,7 @@
 
 namespace RybakDigital\Bundle\AuthenticationBundle\Authentication\Token;
 
+use Symfony\Component\HttpFoundation\RequestStack;
 use RybakDigital\Bundle\AuthenticationBundle\Authentication\Token\Token;
 
 /**

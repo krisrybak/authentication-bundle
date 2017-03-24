@@ -12,7 +12,8 @@ interface TokenExpiryCheckerInterface
     /**
      * Get getAbstractTokenExpiryTime
      *
+     * @param   string      $tokenAbstract      TokenAbstract
      * @return  int|false
      */
-    public function getAbstractTokenExpiryTime();
+    public function getAbstractTokenExpiryTime($tokenAbstract);
 }

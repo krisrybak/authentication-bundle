@@ -11,3 +11,6 @@ services:
     rybakdigital.authentication.api.app_user_token.parameter_authenticator:
         class: RybakDigital\Bundle\AuthenticationBundle\Security\Authentication\Api\AppUserToken\ParameterAuthenticator
         arguments: []
+    rybakdigital.authentication.token.token_expiry_checker:
+        class: RybakDigital\Bundle\AuthenticationBundle\Authentication\Token\TokenExpiryChecker
+        arguments: ['@request_stack']

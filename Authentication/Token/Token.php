@@ -477,13 +477,12 @@ class Token implements TokenInterface, UserTokenInterface
     }
 
     /**
-     * Checks if given tokenAbstract is valid when used with supplied $key.
+     * Gets token from Abstract
      *
-     * @param   string  $tokenAbstract  TokenAbstract to validate
-     * @param   string  $key            Key to use for $tokenAbstract validation
-     * @return  boolean                 True if valid pair, otherwise false
+     * @param   string      $tokenAbstract  TokenAbstract to validate
+     * @return  StdClass                    Return stdClass object representing Token
      */
-    public function validate($tokenAbstract, $key)
+    public function fromAbstract($tokenAbstract)
     {
         // Detect type of token
         $re = "/(~" . self::PREFIX_APP . "|~" . self::PREFIX_NONCE . "|~" . self::PREFIX_TOKEN . "|~" . self::PREFIX_REALM . ")/m";
@@ -493,6 +492,21 @@ class Token implements TokenInterface, UserTokenInterface
         } else {
             $token = $this->fromHeader($tokenAbstract);
         }
+
+        return $token;
+    }
+
+    /**
+     * Checks if given tokenAbstract is valid when used with supplied $key.
+     *
+     * @param   string  $tokenAbstract  TokenAbstract to validate
+     * @param   string  $key            Key to use for $tokenAbstract validation
+     * @return  boolean                 True if valid pair, otherwise false
+     */
+    public function validate($tokenAbstract, $key)
+    {
+        // Get token from abstract
+        $token = $this->fromAbstract($tokenAbstract);
 
         $this->setKey($key);
 
@@ -527,5 +541,32 @@ class Token implements TokenInterface, UserTokenInterface
     public function isValid($tokenAbstract, $key)
     {
         return $this->validate($tokenAbstract, $key);
+    }
+
+    /**
+     * Gets number of seconds until token expiry time
+     *
+     * @param   string  $tokenAbstract  TokenAbstract to validate
+     * @return  int                     Number of seconds until expiry time
+     */
+    public function expiresIn($tokenAbstract)
+    {
+        $token = $this->fromAbstract($tokenAbstract);
+
+        if (isset($token->ExpiresAt)) {
+            $expiry = \DateTime::createFromFormat(\DateTime::ATOM, $token->ExpiresAt);
+
+            // Check if expiry is a valid datetime
+            if ($expiry) {
+                $now = new \Datetime;
+
+                // Return time left between now and Expiry time (in seconds)
+                $expiresIn = $expiry->getTimestamp() - $now->getTimestamp();
+
+                return ($expiresIn > 0) ? $expiresIn : 0;
+            }
+        }
+
+        return false;
     }
 }

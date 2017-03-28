@@ -242,7 +242,7 @@ class HeaderAuthenticatorTest extends TestCase
         $result = $headerAuthenticator->onAuthenticationFailure($request, $exception);
 
         $this->assertInstanceOf(JsonResponse::class, $result);
-        $this->assertEquals(403, $result->getStatusCode());
+        $this->assertEquals(401, $result->getStatusCode());
     }
 
     public function testStart()

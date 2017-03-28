@@ -4,6 +4,7 @@ namespace RybakDigital\Bundle\AuthenticationBundle\Security\Authentication\Api\A
 
 use Symfony\Component\Security\Guard\AbstractGuardAuthenticator;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -93,12 +94,9 @@ class HeaderAuthenticator extends AbstractGuardAuthenticator
     {
         $data = array(
             'message' => strtr($exception->getMessageKey(), $exception->getMessageData())
-
-            // or to translate this message
-            // $this->translator->trans($exception->getMessageKey(), $exception->getMessageData())
         );
 
-        return new JsonResponse($data, 403);
+        return new JsonResponse($data, Response::HTTP_UNAUTHORIZED);
     }
 
     /**
@@ -111,7 +109,7 @@ class HeaderAuthenticator extends AbstractGuardAuthenticator
             'message' => 'Authentication Required'
         );
 
-        return new JsonResponse($data, 401);
+        return new JsonResponse($data, Response::HTTP_UNAUTHORIZED);
     }
 
     public function supportsRememberMe()

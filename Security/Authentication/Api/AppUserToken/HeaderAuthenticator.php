@@ -86,7 +86,11 @@ class HeaderAuthenticator extends AbstractGuardAuthenticator
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, $providerKey)
     {
-        // on success, let the request continue
+        // Add token used for authentication to UserToken attributes
+        $authToken = new Token;
+        $authToken->fromHeader($request->headers->get('X-AUTH-TOKEN'));
+        $token->setAttribute('token', $authToken);
+
         return null;
     }
 

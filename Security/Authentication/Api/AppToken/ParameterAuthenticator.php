@@ -74,6 +74,11 @@ class ParameterAuthenticator extends AbstractGuardAuthenticator
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, $providerKey)
     {
+        // Add token used for authentication to UserToken attributes
+        $authToken = new Token;
+        $authToken->fromParameter($request->query->get('rd-auth-token'));
+        $token->setAttribute('token', $authToken);
+
         // on success, let the request continue
         return null;
     }

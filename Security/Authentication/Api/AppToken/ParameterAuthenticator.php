@@ -10,6 +10,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
+use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use RybakDigital\Bundle\AuthenticationBundle\Authentication\Token\Token;
 use RybakDigital\Bundle\AuthenticationBundle\Security\Authentication\Api\AppToken\AppTokenAuthorizableInterface as AppTokenAuthorizableInterface;
 
@@ -27,7 +28,7 @@ class ParameterAuthenticator extends AbstractGuardAuthenticator
     public function getCredentials(Request $request)
     {
         // Get token and key
-        $parameterToken = $request->query->get('rd-auth-token');
+        $parameterToken = $request->query->get('rd-app-token');
 
         if (!$parameterToken) {
             // no token, nonce or app? Return null and no other methods will be called
@@ -46,16 +47,27 @@ class ParameterAuthenticator extends AbstractGuardAuthenticator
 
     public function getUser($credentials, UserProviderInterface $userProvider)
     {
+        if (!is_array($credentials)) {
+            throw new \InvalidArgumentException("Credentials passed to getUser must be of type array", 400);
+        }
+
         $token = $credentials['token'];
 
-        $app = $userProvider->loadUserByUsername($token->getApp());
+        $user = $userProvider->loadUserByUsername($token->getUser());
+
+        if (!$user) {
+            // no user with that name? Return null and no other methods will be called
+            return;
+        }
+
+        $app = $user->loadApiAppByName($token->getApp());
 
         if (!$app) {
             // no application with that name? Return null and no other methods will be called
             return;
         }
 
-        return $app;
+        return $user;
     }
 
     public function checkCredentials($credentials, UserInterface $user)
@@ -69,7 +81,7 @@ class ParameterAuthenticator extends AbstractGuardAuthenticator
             throw new \InvalidArgumentException("User passed to HeaderAuthenticator must implement AppTokenAuthorizableInterface ", 400); 
         }
 
-        return $token->isValid($parameter, $user->getApiKey());
+        return $token->isValid($parameter, $user->loadApiAppByName($token->getApp())->getApiKey());
     }
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, $providerKey)
@@ -80,9 +92,15 @@ class ParameterAuthenticator extends AbstractGuardAuthenticator
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception)
     {
-        $data = array(
-            'message' => strtr($exception->getMessageKey(), $exception->getMessageData())
-        );
+        if ($exception instanceof UsernameNotFoundException) {
+            $data = array(
+                'message' => 'Application not found'
+            );
+        } else {
+            $data = array(
+                'message' => strtr($exception->getMessageKey(), $exception->getMessageData())
+            );
+        }
 
         return new JsonResponse($data, Response::HTTP_UNAUTHORIZED);
     }

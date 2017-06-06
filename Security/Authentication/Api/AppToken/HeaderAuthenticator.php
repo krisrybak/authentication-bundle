@@ -10,6 +10,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
+use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use RybakDigital\Bundle\AuthenticationBundle\Authentication\Token\Token;
 use RybakDigital\Bundle\AuthenticationBundle\Security\Authentication\Api\AppToken\AppTokenAuthorizableInterface as AppTokenAuthorizableInterface;
 
@@ -27,7 +28,7 @@ class HeaderAuthenticator extends AbstractGuardAuthenticator
     public function getCredentials(Request $request)
     {
         // Get token and key
-        $headerToken  = $request->headers->get('X-AUTH-TOKEN');
+        $headerToken  = $request->headers->get('X-APP-TOKEN');
 
         if (!$headerToken) {
             // no token, nonce or app? Return null and no other methods will be called
@@ -52,14 +53,21 @@ class HeaderAuthenticator extends AbstractGuardAuthenticator
 
         $token = $credentials['token'];
 
-        $app = $userProvider->loadUserByUsername($token->getApp());
+        $user = $userProvider->loadUserByUsername($token->getUser());
+
+        if (!$user) {
+            // no user with that name? Return null and no other methods will be called
+            return;
+        }
+
+        $app = $user->loadApiAppByName($token->getApp());
 
         if (!$app) {
             // no application with that name? Return null and no other methods will be called
             return;
         }
 
-        return $app;
+        return $user;
     }
 
     public function checkCredentials($credentials, UserInterface $user)
@@ -85,7 +93,7 @@ class HeaderAuthenticator extends AbstractGuardAuthenticator
             throw new \InvalidArgumentException("User passed to HeaderAuthenticator must implement AppTokenAuthorizableInterface ", 400);
         }
 
-        return $token->isValid($header, $user->getApiKey());
+        return $token->isValid($header, $user->loadApiAppByName($token->getApp())->getApiKey());
     }
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, $providerKey)
@@ -100,9 +108,15 @@ class HeaderAuthenticator extends AbstractGuardAuthenticator
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception)
     {
-        $data = array(
-            'message' => strtr($exception->getMessageKey(), $exception->getMessageData())
-        );
+        if ($exception instanceof UsernameNotFoundException) {
+            $data = array(
+                'message' => 'Application not found'
+            );
+        } else {
+            $data = array(
+                'message' => strtr($exception->getMessageKey(), $exception->getMessageData())
+            );
+        }
 
         return new JsonResponse($data, Response::HTTP_UNAUTHORIZED);
     }

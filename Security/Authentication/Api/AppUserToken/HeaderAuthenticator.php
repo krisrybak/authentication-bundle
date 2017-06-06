@@ -60,28 +60,28 @@ class HeaderAuthenticator extends AbstractGuardAuthenticator
 
     public function checkCredentials($credentials, UserInterface $user)
     {
+        if (!is_array($credentials)) {
+            throw new \InvalidArgumentException("Credentials passed to HeaderAuthenticator must be an array ", 400);
+        }
+
+        if (!isset($credentials['token']) || !($credentials['token'] instanceof Token) ) {
+            throw new \InvalidArgumentException("Credentials token must be an instance of Token ", 400);
+        }
+
+        if (!isset($credentials['header']) || !is_string($credentials['header'])) {
+            throw new \InvalidArgumentException("Credentials header must be a string ", 400);
+        }
+
         // check credentials - e.g. make sure the password is valid
         // Let's validate our token
         $token  = $credentials['token'];
         $header = $credentials['header'];
 
-        if (!$user instanceof AppUserInterface){
-            throw new \InvalidArgumentException("User passed to HeaderAuthenticator must implement AppUserInterface", 400); 
+        if (!$user instanceof AppTokenAuthorizableInterface){
+            throw new \InvalidArgumentException("User passed to HeaderAuthenticator must implement AppTokenAuthorizableInterface ", 400);
         }
 
-        // Get App
-        $app = $user->loadApiAppByName($token->getApp());
-
-        if (!$app) {
-            // no application with that name? Return null and no other methods will be called
-            return;
-        }
-
-        if (!$app instanceof AppTokenAuthorizableInterface){
-            throw new \InvalidArgumentException("App passed to HeaderAuthenticator must implement AppTokenAuthorizableInterface", 400); 
-        }
-
-        return $token->isValid($header, $app->getApiKey());
+        return $token->isValid($header, $user->getApiKey());
     }
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, $providerKey)
